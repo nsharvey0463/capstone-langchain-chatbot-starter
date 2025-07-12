@@ -5,8 +5,32 @@ from flask import request, jsonify, abort
 from langchain.llms import Cohere
 from dotenv import load_dotenv
 
+from langchain.chains import RetrievalQA
+from langchain.embeddings import CohereEmbeddings
+from langchain.vectorstores import Chroma
+
 load_dotenv()
 
+def load_db():
+    try:
+        embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
+        vectordb = Chroma(persist_directory='db', embedding_function=embeddings)
+        qa = RetrievalQA.from_chain_type(
+            llm=Cohere(),
+            chain_type="refine",
+            retriever=vectordb.as_retriever(),
+            return_source_documents=True
+        )
+        return qa
+    except Exception as e:
+        print("Error:", e)
+
+qa = load_db()
+
+def answer_from_knowledgebase(message):
+    res = qa({"query": message})
+    return res['result']
+    
 app = Flask(__name__)
 cohere_api_key = os.environ.get("COHERE_API_KEY")
 
