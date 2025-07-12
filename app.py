@@ -42,12 +42,15 @@ if not cohere_api_key:
 llm = Cohere(cohere_api_key=cohere_api_key)
 
 def search_knowledgebase(message):
-    res = qa({"query": message})
-    print("Retrieved docs:", res['source_documents'])
+    # Use the retriever directly for document search
+    retriever = qa.retriever
+    docs = retriever.get_relevant_documents(message)
+    print("Retrieved docs:", docs)
+    if not docs:
+        return "No relevant documents found."
     sources = ""
-    for count, source in enumerate(res['source_documents'],1):
-        sources += "Source " + str(count) + "\n"
-        sources += source.page_content + "\n"
+    for count, doc in enumerate(docs, 1):
+        sources += f"Source {count}\n{doc.page_content}\n"
     return sources
 
 def answer_as_chatbot(message):
