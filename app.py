@@ -30,7 +30,7 @@ qa = load_db()
 def answer_from_knowledgebase(message):
     res = qa({"query": message})
     return res['result']
-    
+
 app = Flask(__name__)
 cohere_api_key = os.environ.get("COHERE_API_KEY")
 
@@ -40,10 +40,10 @@ if not cohere_api_key:
 # Initialize Cohere LLM
 llm = Cohere(cohere_api_key=cohere_api_key)
 
-def answer_from_knowledgebase(message):
-    # For demonstration, just echo the message with a prefix
-    # Replace with actual knowledgebase retrieval logic
-    return f"Knowledgebase answer: {message}"
+#def answer_from_knowledgebase(message):
+#    # For demonstration, just echo the message with a prefix
+#    # Replace with actual knowledgebase retrieval logic
+#    return f"Knowledgebase answer: {message}"
 
 def search_knowledgebase(message):
     # For demonstration, return a dummy source
