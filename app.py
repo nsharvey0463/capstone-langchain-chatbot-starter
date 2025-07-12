@@ -15,7 +15,7 @@ def load_db():
     try:
         embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
         vectordb = Chroma(persist_directory='db', embedding_function=embeddings)
-        print(vectordb._collection.count())
+#        print(vectordb._collection.count())
         qa = RetrievalQA.from_chain_type(
             llm=Cohere(),
             chain_type="refine",
@@ -45,7 +45,7 @@ def search_knowledgebase(message):
     # Use the retriever directly for document search
     retriever = qa.retriever
     docs = retriever.get_relevant_documents(message)
-    print("Retrieved docs:", docs)
+#    print("Retrieved docs:", docs)
     if not docs:
         return "No relevant documents found."
     sources = ""
