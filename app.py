@@ -70,7 +70,7 @@ def search():
     data = request.get_json()
     message = data.get('message', '')
     sources = search_knowledgebase(message)
-    return jsonify({'sources': sources}), 200
+    return jsonify({'message': sources}), 200
 
 @app.route('/answer', methods=['POST'])
 def answer():
