@@ -41,9 +41,12 @@ if not cohere_api_key:
 llm = Cohere(cohere_api_key=cohere_api_key)
 
 def search_knowledgebase(message):
-    # For demonstration, return a dummy source
-    # Replace with actual search logic
-    sources = "Source1, Source2"
+    res = qa({"query": message})
+    sources = ""
+    for count, source in enumerate(res['source_documents'],1):
+        sources += "Source " + str(count) + "\n"
+        sources += source.page_content + "\n"
+    
     return sources
 
 def answer_as_chatbot(message):
