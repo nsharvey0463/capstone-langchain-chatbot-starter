@@ -3,32 +3,156 @@
 <head>
     <title>Thinkbot</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="static/style.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f8fafc; }
+        .chat-container {
+            background: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            min-height: 400px;
+            max-height: 60vh;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px #0001;
+        }
+        .chat-bubble {
+            display: inline-block;
+            padding: 12px 18px;
+            border-radius: 18px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            word-break: break-word;
+        }
+        .user-bubble {
+            background: #d1e7dd;
+            align-self: flex-end;
+            margin-left: 20%;
+        }
+        .bot-bubble {
+            background: #e2e3e5;
+            align-self: flex-start;
+            margin-right: 20%;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 8px;
+        }
+        .chat-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .chat-row.user {
+            justify-content: flex-end;
+        }
+        .chat-row.bot {
+            justify-content: flex-start;
+        }
+        #loading-spinner {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
-        <div id="chat-container" class="chat-container"></div>
-        <div class="row">
-            <div class="col">
-                <div>
-                    <select class="form-control" id="function-select">
-                        <option value="answer">Answer as Chatbot</option>
-                        <option value="kbanswer">Answer Question from Knowledge Base</option>
-                        <option value="search">Search Knowledge Base</option>
-                    </select>
-                </div>
+        <div id="chat-container" class="chat-container d-flex flex-column"></div>
+        <div id="loading-spinner" class="text-center">
+            <div class="spinner-border text-primary" role="status"></div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-4">
+                <select class="form-control" id="function-select">
+                    <option value="answer">Answer as Chatbot</option>
+                    <option value="kbanswer">Answer Question from Knowledge Base</option>
+                    <option value="search">Search Knowledge Base</option>
+                </select>
             </div>
             <div class="col-8">
                 <div class="input-group">
-                    <input type="text" id="message-input" class="form-control w-80" placeholder="Type your message here...">
-                    <div class="input-group-append"></div>
-                    <button id="send-btn" class="btn btn-primary">Send</button>
+                    <input type="text" id="message-input" class="form-control rounded-pill" placeholder="Type your message here...">
+                    <div class="input-group-append">
+                        <button id="send-btn" class="btn btn-primary rounded-pill ms-2">
+                            <span class="fas fa-paper-plane"></span> Send
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
-    <script src="static/main.js"></script>
+    <script>
+        // Avatars (use your own images if you want)
+        const userAvatar = "https://randomuser.me/api/portraits/men/32.jpg";
+        const botAvatar = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
+
+        const chatContainer = document.getElementById('chat-container');
+        const sendBtn = document.getElementById('send-btn');
+        const messageInput = document.getElementById('message-input');
+        const functionSelect = document.getElementById('function-select');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        // Welcome message
+        window.onload = () => {
+            addMessage("👋 Hi! I'm Thinkbot. How can I help you today?", 'bot');
+        };
+
+        sendBtn.onclick = async function() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            addMessage(message, 'user');
+            messageInput.value = '';
+            loadingSpinner.style.display = 'block';
+
+            // Determine which endpoint to use
+            let endpoint = '/answer';
+            if (functionSelect.value === 'kbanswer') endpoint = '/kbanswer';
+            if (functionSelect.value === 'search') endpoint = '/search';
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                // Use the correct property for each endpoint
+                let reply = data.message || data.sources || "No response.";
+                addMessage(reply, 'bot');
+            } catch (e) {
+                addMessage("Sorry, there was an error.", 'bot');
+            }
+            loadingSpinner.style.display = 'none';
+        };
+
+        // Enter key support
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') sendBtn.click();
+        });
+
+        function addMessage(text, sender) {
+            const row = document.createElement('div');
+            row.className = `chat-row ${sender}`;
+            const avatar = document.createElement('img');
+            avatar.className = 'avatar';
+            avatar.src = sender === 'user' ? userAvatar : botAvatar;
+            const bubble = document.createElement('div');
+            bubble.className = `chat-bubble ${sender}-bubble`;
+            bubble.textContent = text;
+            if (sender === 'user') {
+                row.appendChild(bubble);
+                row.appendChild(avatar);
+            } else {
+                row.appendChild(avatar);
+                row.appendChild(bubble);
+            }
+            chatContainer.appendChild(row);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
 </body>
 </html>
