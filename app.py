@@ -1,48 +1,55 @@
+import os
+
 from flask import Flask, render_template
 from flask import request, jsonify, abort
-
 from langchain.llms import Cohere
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
+cohere_api_key = os.environ.get("COHERE_API_KEY")
+
+if not cohere_api_key:
+    raise ValueError("COHERE_API_KEY is not set in the environment variables.") 
+
+# Initialize Cohere LLM
+llm = Cohere(cohere_api_key=cohere_api_key)
 
 def answer_from_knowledgebase(message):
-    # TODO: Write your code here
-    return ""
+    # For demonstration, just echo the message with a prefix
+    # Replace with actual knowledgebase retrieval logic
+    return f"Knowledgebase answer: {message}"
 
 def search_knowledgebase(message):
-    # TODO: Write your code here
-    sources = ""
+    # For demonstration, return a dummy source
+    # Replace with actual search logic
+    sources = "Source1, Source2"
     return sources
 
 def answer_as_chatbot(message):
-    # TODO: Write your code here
-    return ""
+    # Use Cohere LLM to generate a response
+    response = llm(message)
+    return response
 
 @app.route('/kbanswer', methods=['POST'])
 def kbanswer():
-    # TODO: Write your code here
-    
-    # call answer_from_knowledebase(message)
-        
-    # Return the response as JSON
-    return 
+    data = request.get_json()
+    message = data.get('message', '')
+    response = answer_from_knowledgebase(message)
+    return jsonify({'message': response}), 200
 
 @app.route('/search', methods=['POST'])
 def search():    
-    # Search the knowledgebase and generate a response
-    # (call search_knowledgebase())
-    
-    # Return the response as JSON
-    return
+    data = request.get_json()
+    message = data.get('message', '')
+    sources = search_knowledgebase(message)
+    return jsonify({'sources': sources}), 200
 
 @app.route('/answer', methods=['POST'])
 def answer():
     message = request.json['message']
-    
-    # Generate a response
     response_message = answer_as_chatbot(message)
-    
-    # Return the response as JSON
     return jsonify({'message': response_message}), 200
 
 @app.route("/")

@@ -4,3 +4,4 @@ Flask==2.3.2
 langchain==0.0.195
 langchainplus-sdk==0.0.8
 gunicorn==19.3.0
+python-dotenv
