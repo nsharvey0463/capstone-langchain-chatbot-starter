@@ -15,6 +15,7 @@ def load_db():
     try:
         embeddings = CohereEmbeddings(cohere_api_key=os.environ["COHERE_API_KEY"])
         vectordb = Chroma(persist_directory='db', embedding_function=embeddings)
+        print(vectordb._collection.count())
         qa = RetrievalQA.from_chain_type(
             llm=Cohere(),
             chain_type="refine",
@@ -42,11 +43,11 @@ llm = Cohere(cohere_api_key=cohere_api_key)
 
 def search_knowledgebase(message):
     res = qa({"query": message})
+    print("Retrieved docs:", res['source_documents'])
     sources = ""
     for count, source in enumerate(res['source_documents'],1):
         sources += "Source " + str(count) + "\n"
         sources += source.page_content + "\n"
-    
     return sources
 
 def answer_as_chatbot(message):
